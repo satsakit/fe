@@ -1,32 +1,45 @@
 const express = require('express');
 const app = express();
-const mysql = require('mysql');
+// เรียกใช้โมดูล pg เพื่อเชื่อมต่อกับ PostgreSQL
+const { Pool } = require('pg');
+const multer = require('multer')
+const fs = require('fs')
 const port = 3000;
 app.use(express.static('public'));
-// const connection = mysql.createConnection({ 
-//     port: '5432',
-//     host: '192.168.100.125',
-//     user: 'kdadmin', // ชื่อผู้ใช้ MySQL
-//     password: 'P@ssw0rdData', // รหัสผ่าน MySQL
-//     database: 'know_db' // ชื่อฐานข้อมูลที่ต้องการเชื่อมต่อ
-//   });
-const connection = mysql.createConnection({ 
-    port: '3306',
-    host: 'localhost',
-    user: 'root', // ชื่อผู้ใช้ MySQL
-    password: '', // รหัสผ่าน MySQL
-    database: 'pj' // ชื่อฐานข้อมูลที่ต้องการเชื่อมต่อ
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = "./public/uploads"
+    fs.mkdirSync(uploadDir, { recursive: true });
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${req.body.camera_name}.jpg`)
+  }
+})
+
+const upload = multer({ storage: storage })
+
+// กำหนดค่าการเชื่อมต่อฐานข้อมูล PostgreSQL
+const pool = new Pool({
+  user: 'kdadmin',
+  host: '192.168.100.125',
+  database: 'know_db',
+  password: 'P@ssw0rdData',
+  port: 5432, // พอร์ตเริ่มต้นของ PostgreSQL
+});
+
+  pool.connect((err) => {
+      if (err) {
+          console.error('Error connecting to the database:', err.stack);
+          return;
+      }
+  
+      console.log('Connected to the MySQL database successfully');
   });
   
-  connection.connect((err) => {
-    if (err) {
-      console.error('เกิดข้อผิดพลาดในการเชื่อมต่อกับฐานข้อมูล:', err.stack);
-      return;
-    }
-  
-    console.log('เชื่อมต่อกับ MySQL Database สำเร็จ');
-  });
-  
+  // เรียกใช้ Express เพื่อรับคำขอ HTTP
+
 
 // กำหนดให้ Express ใช้ EJS เป็น View Engine
 app.set('view engine', 'ejs');
@@ -38,49 +51,73 @@ app.use(express.urlencoded({ extended: false }));
 app.get('/login', (req, res) => {
   res.render('login');
 });
+app.get('/index', (req, res) => {
+  res.render('index');
+});
+app.get('/logout', (req, res) => {
+  res.render('login');
+});
+//กำหนด username password
+const users = [{
+  "username":"admin@metthier.com",
+  "password":"1234MT"
+},
+]
 
 // ตรวจสอบการล็อกอิน
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
-  console.log(username,password);
-  // ตรวจสอบ username และ password ในฐานข้อมูลหรือที่เก็บไว้
-  // ในที่นี้เพื่อตัวอย่างเท่านั้น
-//   if (username === 'admin' && password === 'password') {
-//     res.send('ยินดีต้อนรับเข้าสู่ระบบ');
-//   } else {
-//     reshrehreher.send('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
-//   }
 
-  const sql = 'SELECT * FROM user WHERE username = ?';
-  
-  // ประมวลผลคำสั่ง SQL
-  connection.query(sql, [username], (err, results) => {
-    if (err) {
-      console.error('Error querying MySQL database', err);
+  // Iterate over the users array to find a matching username
+  const user = users.find(user => user.username === username);
+
+  if (user) {
+    // If the user is found, check the password
+    if (user.password === password) {
+      return res.redirect('/camera');
+    } else {
       
-      return res.send('เชื่อมต่อไม่สำเร็จ')
+      return res.send('<script>alert("รหัสผ่านไม่ถูกต้อง");</script>');
     }
-
-    if (results.length === 0) {
-      // ไม่พบผู้ใช้
+  } else {
     
-      return res.send('ไม่พบผู้ใช้')
-      
-
-    }
-
-    const user = results[0];
-    // ตรวจสอบรหัสผ่าน
-    const passwordMatch = user.password == password ? true : false 
-        if (passwordMatch) {
-            res.send('ล็อคอินสำเร็จ')
-
-        }
-        else {
-            res.send('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'); }
-})
+    return res.send('<script>alert("ไม่พบผู้ใช้");</script>');
+  }
 });
 
+app.get("/camera", async(req,res) => {
+  try {
+    const client = await pool.connect()
+    const result = await client.query("SELECT * from intrusion_rule_infos.intrusion_rule_infos")
+    const users = result.rows
+    console.log(users);
+    return res.render('index.ejs', {users})
+  } catch (error) {
+    return res.send({message: "error"})
+  }
+})
+
+app.post("/camera",upload.single("image"), async(req,res) => {
+
+  console.log(req.body);
+  const {camera_owner, camera_name, start_time, end_time,image} = req.body
+  console.log(image);
+  try {
+    const currentDate = new Date(); // Current date and time
+    const formattedDate = currentDate.toISOString(); 
+    const client = await pool.connect()
+    const result = await client.query("INSERT into intrusion_rule_infos.intrusion_rule_infos (camera_owner,camera_name,start_time,end_time,image, created_at, created_by, intrusion_type ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",[camera_owner, camera_name, start_time, end_time,image?.filename, formattedDate, "golf", "image"])
+    const newCamera = result.rows[0]
+
+
+
+    return res.send({data: newCamera,status: true})
+  } catch (error) {
+    console.log(error);
+    return res.send({message: "error"})
+  }
+})
+
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server running at http://localhost:${port}/login`);
 });

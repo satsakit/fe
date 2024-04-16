@@ -2,7 +2,9 @@
   "dependencies": {
     "ejs": "^3.1.9",
     "express": "^4.19.2",
-    "mysql": "^2.18.1"
+    "multer": "^1.4.5-lts.1",
+    "mysql": "^2.18.1",
+    "pg": "^8.11.5"
   },
   "name": "h",
   "version": "1.0.0",
@@ -13,5 +15,8 @@
   },
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "tailwindcss": "^3.4.3"
+  }
 }

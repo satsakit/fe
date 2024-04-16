@@ -1,0 +1,15 @@
+
+.bg-mynav {
+  background-color: rgba(53, 50, 50, 0.9);
+  height: 100%;
+}
+/* CSS for wider table */
+.table-gray th,
+.table-gray td {
+    padding: 50px; /* ปรับขนาดของเส้นขอบและการเว้นระยะของเนื้อหา */
+}
+
+
+
+
+
