@@ -7,19 +7,11 @@ const fs = require('fs')
 const port = 3000;
 app.use(express.static('public'));
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = "./public/uploads"
-    fs.mkdirSync(uploadDir, { recursive: true });
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${req.body.camera_name}.jpg`)
-  }
-})
 
-const upload = multer({ storage: storage })
-
+//const upload = multer({ storage: storage })
+const upload = multer({
+  storage: multer.memoryStorage() // เก็บไฟล์ในหน่วยความจำชั่วคราวเพื่อให้สามารถเข้าถึง buffer ได้
+});
 // กำหนดค่าการเชื่อมต่อฐานข้อมูล PostgreSQL
 const pool = new Pool({
   user: 'kdadmin',
@@ -97,26 +89,33 @@ app.get("/camera", async(req,res) => {
   }
 })
 
-app.post("/camera",upload.single("image"), async(req,res) => {
-
-  console.log(req.body);
-  const {camera_owner, camera_name, start_time, end_time,image} = req.body
-  console.log(image);
+app.post("/camera", upload.single("image"), async (req, res) => {
   try {
-    const currentDate = new Date(); // Current date and time
-    const formattedDate = currentDate.toISOString(); 
-    const client = await pool.connect()
-    const result = await client.query("INSERT into intrusion_rule_infos.intrusion_rule_infos (camera_owner,camera_name,start_time,end_time,image, created_at, created_by, intrusion_type ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",[camera_owner, camera_name, start_time, end_time,image?.filename, formattedDate, "golf", "image"])
-    const newCamera = result.rows[0]
+    if (!req.file) {
+      return res.status(400).send({ message: 'No file uploaded' });
+    }
 
+    const { camera_owner, camera_name, start_time, end_time } = req.body;
+    const currentDate = new Date();
+    const formattedDate = currentDate.toISOString();
+    console.log(req.file);
+    const imageBuffer = req.file.buffer; // Access the uploaded file buffer
+    const imageBase64 = imageBuffer.toString('base64');
 
+    const client = await pool.connect();
+    const result = await client.query(
+      "INSERT INTO intrusion_rule_infos.intrusion_rule_infos (camera_owner, camera_name, start_time, end_time, image, created_at, created_by, intrusion_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+      [camera_owner, camera_name, start_time, end_time, imageBase64, formattedDate, "golf", "image"]
+    );
 
-    return res.send({data: newCamera,status: true})
+    return res.redirect('/camera');
+
   } catch (error) {
     console.log(error);
-    return res.send({message: "error"})
+    return res.status(500).send({ message: "Internal server error" });
   }
-})
+});
+
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}/login`);

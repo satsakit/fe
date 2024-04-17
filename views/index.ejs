@@ -39,7 +39,7 @@
       </div>
     </div>
   </nav> -->
-  <nav class="navbar navbar-dark bg-dark">
+  <nav class="navbar navbar-light bg-dark">
     <div class="container mx-2">
       <a class="navbar-brand" href="#">
         <img src="/docs/5.0/assets/brand/bootstrap-logo.svg" alt="" width="30" height="24">
@@ -74,7 +74,7 @@
         <div class="modal-body">
           <!-- เนื้อหาภายใน Modal -->
           <!-- ตัวอย่างฟอร์ม -->
-          <form action="/camera" method="POST">
+          <form action="/camera" enctype="multipart/form-data" method="POST">
             <div class="mb-3">
               <label for="site" class="form-label">Camera Owner</label>
               <input type="text" class="form-control" id="camera_owner" name="camera_owner">
@@ -91,9 +91,9 @@
               <label for="site" class="form-label">End time</label>
               <input type="time" class="form-control" id="end_time" name="end_time">
             </div>
-            <div class="mb-3">
+            <div>
               <label for="site" class="form-label">Image</label>
-              <input type="file" class="form-control" id="image" name="image">
+              <input type="file" class="form-control" id="image" name="image" >
             </div>
             <!-- สามารถเพิ่มฟิลด์หรือองค์ประกอบอื่นๆของฟอร์มตามต้องการ -->
             <div class="modal-footer">
@@ -107,7 +107,7 @@
   </div>
   </button>
 
-  <table class="w-100 p-3 bg-secondary">
+  <table class="w-100 p-3 bg-light">
     <thead>
       <tr>
         <th scope="col">#</th> 
