@@ -1,67 +1,102 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<head>
-  <!-- Required meta tags -->
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x"
+      crossorigin="anonymous"
+    />
 
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <title>Intrusion Rule Mapping</title>
+    <link href="/views/login.css" rel="stylesheet" />
+  </head>
 
-  <title>Intrusion Rule Mapping</title>
-  <link href="/views/login.css" rel="stylesheet">
-</head>
+  <body
+    class="vh-100 d-flex justify-content-center align-items-center bg-dark text-white"
+  >
+    <!-- Add bg-dark class here -->
+    <main class="form-signin">
+      <form action="/login" method="POST">
+        <img class="mb-4" src="logo.png" alt="" />
+        <div class="h3 mb-3 fw-normal bg-zinc-950" style="color: white">
+          <div class="d-flex justify-content-center">
+            <h1>Intrusion Rule Mapping</h1>
+          </div>
 
-<body class="vh-100 d-flex justify-content-center align-items-center bg-dark text-white"> <!-- Add bg-dark class here -->
-  <main class="form-signin ">
-    <form action="/login" method="POST">
-      <img class ="mb-4" src="logo.png" alt="">
-      <div class="h3 mb-3 fw-normal bg-zinc-950 " style="color: white;">
-        <div  class="d-flex justify-content-center">
-          <h1>
-              Intrusion Rule Mapping
-          </h1>
-
+          <div class="d-flex justify-content-center">Login</div>
         </div>
 
-        <div class="d-flex justify-content-center">
-          Login
-        </div>
-      </div>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.16/dist/sweetalert2.all.min.js"></script>
+        <script>
+          document.addEventListener("DOMContentLoaded", function () {
+            const loginForm = document.querySelector('form[action="/login"]');
+            loginForm.addEventListener("submit", function (event) {
+              event.preventDefault(); // ป้องกันให้ฟอร์ม submit ไปยังหน้าที่กำหนด
 
+              // ส่งคำขอเข้าสู่ระบบผ่าน AJAX หรือ Fetch API ไปยังเซิร์ฟเวอร์
+              // หลังจากได้รับการตอบสนองถูกต้องจากเซิร์ฟเวอร์ ให้แสดง Sweet Alert
+              Swal.fire({
+                icon: "success",
+                title: "Login successful!",
+              }).then(() => {
+                window.location.href = "/camera"; // เปลี่ยนทางไปยังหน้า /camera
+              });
+            });
+          });
+        </script>
 
-      <div class="row">
-        <div class="mx-2">
-          <div class="form-floating">
-            <input type="email" name="username" class="form-control" id="username" placeholder="name@example.com">
-            <label for="username" style="color: black;">Username</label> <!-- Change text color to black -->
+        <div class="row">
+          <div class="mx-2">
+            <div class="form-floating">
+              <input
+                type="email"
+                name="username"
+                class="form-control"
+                id="username"
+                placeholder="name@example.com"
+              />
+              <label for="username" style="color: black">Username</label>
+              <!-- Change text color to black -->
+            </div>
           </div>
         </div>
-      </div>
-      &nbsp;
-      <div class="row">
-        <div class="mx-2">
-          <div class="form-floating">
-            <input type="password" name="password" class="form-control" id="password" placeholder="Password">
-            <label for="password" style="color: black;">Password</label> <!-- Change text color to black -->
+        &nbsp;
+        <div class="row">
+          <div class="mx-2">
+            <div class="form-floating">
+              <input
+                type="password"
+                name="password"
+                class="form-control"
+                id="password"
+                placeholder="Password"
+              />
+              <label for="password" style="color: black">Password</label>
+              <!-- Change text color to black -->
+            </div>
           </div>
         </div>
-      </div>
-      
-      
-      <button class="btn btn-lg btn-primary mt-4 " type="submit">Login</button>
-      <p class="text-primary mt-5 mb-3 text-muted"><a href='https://www.metthier.co.th/'
-      >โลกแห่งการดูแลความปลอดภัยและการบริหารอสังหาริมทรัพย์</a></p>
-    </form>
-  </main>
 
-  <script src="index.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.16/dist/sweetalert2.all.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
-    crossorigin="anonymous"></script>
-</body>
+        <div class="text-center">
+          <button class="btn btn-lg btn-primary mt-4" type="submit">
+            Login
+          </button>
+        </div>
+      </form>
+    </main>
 
+    <script src="index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.16/dist/sweetalert2.all.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+      crossorigin="anonymous"
+    ></script>
+  </body>
 </html>
