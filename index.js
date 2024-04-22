@@ -9,6 +9,8 @@ app.use(express.static('public'));
 
 
 
+
+
 //const upload = multer({ storage: storage })
 const upload = multer({
   storage: multer.memoryStorage() // เก็บไฟล์ในหน่วยความจำชั่วคราวเพื่อให้สามารถเข้าถึง buffer ได้
@@ -124,12 +126,19 @@ app.post("/camera", upload.single("image"), async (req, res) => {
     const result = await client.query(
       "INSERT INTO intrusion_rule_infos.intrusion_rule_infos (camera_owner, camera_name, start_time, end_time, image, created_at, created_by, intrusion_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
       [camera_owner, camera_name, start_time, end_time, imageBase64, formattedDate, "ice", "image"]
-    );
+    );    
+    //return res.redirect('/camera');
+  //  client.release(); // Release the client back to the pool
 
-    return res.redirect('/camera');
+    return res.status(200).json({
+      message: "Data for '" + camera_name + "' added successfully!",
+      status: "success"
+    });
+   
 
   } catch (error) {
     console.log(error);
+   // client.release();
     return res.status(500).send({ message: "Internal server error" });
   }
 });
@@ -139,7 +148,7 @@ app.post("/update", upload.single("image"), async (req, res) => {
   try {
     const { camera_owner, camera_name, start_time, end_time, id } = req.body;
     const currentDate = new Date();
-
+    console.log(req.body)
     
     const formattedDate = currentDate.toISOString();
     let imageBase64;
@@ -151,34 +160,38 @@ app.post("/update", upload.single("image"), async (req, res) => {
     
     const result  = await pool.query(`SELECT * from intrusion_rule_infos.intrusion_rule_infos where deleted_at is null AND id = $1`,[id])
 
-    const data = result.rows
+    const data = result.rows   
 
+    if (data.length > 0) {
 
-    const sql = `
-      UPDATE intrusion_rule_infos.intrusion_rule_infos
-      SET 
-        camera_owner = $1,
-        camera_name = $2,
-        start_time = $3,
-        end_time = $4,
-        updated_at = $5,
-        image = $6
-      WHERE id = $7;
-    `;
+      const SQLS = `
+    
+      UPDATE intrusion_rule_infos.intrusion_rule_infos  SET 
+        camera_owner = '${camera_owner}',
+        camera_name =  '${camera_name}',
+        start_time =  '${start_time}',
+        end_time =  '${end_time}',       
+        image =  '${imageBase64 || data[0].image}'
+      WHERE id = ${id};
+      `;      
+      
+      const client = await pool.query(SQLS); // Assuming pool is your connection pool
+    // client.release(); // Release the client back to the pool
+      return res.status(200).json({
+        message: "Edit '" + camera_name + "' update successfully!",
+        status: "success"
+      });
 
-    const values = [
-      camera_owner,
-      camera_name,
-      start_time,
-      end_time,
-      formattedDate,
-      imageBase64 || data[0].image, // Include null for image if not uploaded
-      id
-    ];
+    }else{
 
-    const client = await pool.query(sql, values); // Assuming pool is your connection pool
+      return res.status(400).json({
+        message: "Edit '" + camera_name + "' update fail!",
+        status: "error"
+      });
 
-    return res.redirect('/camera');
+    }
+
+    // return res.redirect('/camera');
   } catch (error) {
     console.error(error);
     return res.status(500).send({ message: "Internal server error" });
@@ -196,7 +209,7 @@ app.delete("/camera/:id", async(req,res) => {   // update simulation delete_at f
 
      const data = result.rows
      const SQL_update = `update intrusion_rule_infos.intrusion_rule_infos set deleted_at = '${formattedDate}' where id = ${parseInt(id)}`
-     console.log(SQL_update)
+    
      if(data.length > 0){
       const client = await pool.query(SQL_update);
       
